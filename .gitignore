@@ -1,0 +1,5 @@
+apikey.py
+.vscode/
+__pycache__/
+*.pyc
+config.py

@@ -1,0 +1,9 @@
+unstructured
+unstructured[md]
+langchain
+langchain-core
+langchain-community
+langchain-ollama
+python-magic
+python-magic-bin
+openai
