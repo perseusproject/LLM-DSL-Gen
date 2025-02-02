@@ -1,0 +1,6 @@
+{
+  "question": "What does the script below display?\n\n```envision\ntable Orders = with\n  [| as Date, as Quantity |]\n  [| date(2024, 1, 1), 3 |]\n  [| date(2024, 1, 3), 9 |]\n  [| date(2024, 1, 4), 5 |]\n  [| date(2024, 1, 2), 2 |]\n  [| date(2024, 1, 2), 6 |]\n  [| date(2024, 1, 5), 4 |]\n  [| date(2024, 1, 1), 6 |]\n  [| date(2024, 1, 4), 2 |]\n  [| date(2024, 1, 3), 7 |]\n  [| date(2024, 1, 3), 5 |]\n\nshow table \"Quantity per Day\" a1c6 with\n  sum(Orders.Quantity)\n  group by Orders.Date\n  order by [sum(Orders.Quantity)]\n```",
+  "answer": "The table Orders contains 10 lines and 2 columns describing dates and quantity. \n\nThe instruction 'show table' displays a table which contains the sum of the quantities per day in the table Orders.\nThanks to the 'order by' instruction, the displayed table is sorted by increasing value.\n\nIn summary:\n\nThe script displays a table containing the sum of the quantities per day in the table Orders, sorted by increasing value.",
+  "ref": "",
+  "type": "QA"
+}

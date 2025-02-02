@@ -1,0 +1,6 @@
+{
+  "question": "Create a table named `T` that contains 3 lines. There must be column named `X` that contains the values `a`, `b` and `c`. Put this table on display.",
+  "answer": "```envision\ntable T = with // hard-coding a table\n  [| as X |] // column header\n  [| \"a\" |]\n  [| \"b\" |]\n  [| \"c\" |]\n\n// displaying the 3 values\nshow table \"My Title\" with T.X\n```",
+  "ref": "relational-algebra_index",
+  "type" : "coding"
+}

@@ -1,5 +1,9 @@
-apikey.py
 .vscode/
 __pycache__/
 *.pyc
-config.py
+config.toml
+*.egg-info/
+apikey.py
+api_keys.py
+tests/logs/*
+vector_db/*

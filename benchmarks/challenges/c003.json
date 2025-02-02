@@ -1,0 +1,6 @@
+{
+  "question": "Considering the table `Orders` as given below, compute the total inventory value for all SKUs (using the price as value indicator), then display the total. You need to copy the given code at the beginning of your output, and then write your own code.\n\n```envision\ntable Orders = with\n  [| as Sku, as Qty, as UnitPrice |]\n  [| \"a\",    5     , 1.5          |]\n  [| \"b\",    3     , 7.0          |]\n  [| \"b\",    1     , 2.0          |]\n  [| \"c\",    7     , 5.7          |]\n```",
+  "answer": "```envision\ntable Orders = with\n  [| as Sku, as Qty, as UnitPrice |]\n  [| \"a\",    5     , 1.5          |]\n  [| \"b\",    3     , 7.0          |]\n  [| \"b\",    1     , 2.0          |]\n  [| \"c\",    7     , 5.7          |]\n// the above definition should be exactly as shown.\n\n// next we do line-wise multiply\nOrders.Value = Orders.Qty * Orders.UnitPrice\n\n// aggregate from 'Orders' table into the scalar table :\ntotalValue = sum(Orders.Value)\n\n// display the result\nshow scalar \"Total Value\" with totalValue\n```\n\n//it is acceptable to shorten the code writing instead `show scalar \"Total Value\" with sum(Orders.Qty * Orders.UnitPrice)`.",
+  "ref": "",
+  "type" : "coding"
+}

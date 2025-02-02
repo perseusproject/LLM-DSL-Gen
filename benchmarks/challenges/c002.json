@@ -1,0 +1,6 @@
+{
+  "question": "Create a table `T` that has 3 lines, then create a filter that only keeps 2 lines, and display all the filtered table's content.",
+  "answer": "A correct answer must have `show table` indented with 2 whitespaces after the `where` statement, as done below:\n\n```envision\ntable T = with // hard-coding a table\n  [| as X |] // column header\n  [| \"a\" |]\n  [| \"b\" |]\n  [| \"c\" |]\n\nwhere T.X != \"a\" // filter T, exclude 1 line\n  // displaying the 2 values\n  show table \"Filtered\" with T.X \n  // Must be a show table command, not show label.\n```",
+  "ref": "",
+  "type" : "coding"
+}

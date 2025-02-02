@@ -1,0 +1,6 @@
+{
+    "question": "Define a ranvar corresponding to the poisson probability distribution with the parameter 5, and display it as a scalar",
+    "answer": "```envision\nr = poisson(5) // define the probability distribution\nshow scalar \"Poisson probability distribution\" a1b3 with\n  r\n// Displaying the probability distribution as a scalar\n\n//it is acceptable to shorten the code writing instead `show scalar \"Poisson probability distribution\" a1b3 with poisson(5)`.",
+    "ref": "",
+    "type": "coding"
+}

@@ -1,0 +1,6 @@
+{
+    "question": "Define a text literal called greetings with value \"Hello\" and display greetings on the dashboard as a label.",
+    "answer": "```envision\ngreetings = \"Hello\" // define the text literal\nshow label greetings // show the text literal as a label. There should be no 'with' !\n```",
+    "ref": "",
+    "type" : "coding"
+}

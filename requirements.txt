@@ -4,6 +4,12 @@ langchain
 langchain-core
 langchain-community
 langchain-ollama
+langchain-huggingface
+langgraph
 python-magic
 python-magic-bin
+pydantic
 openai
+tomli
+faiss-cpu
+sentence-transformers

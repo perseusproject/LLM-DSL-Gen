@@ -1,0 +1,9 @@
+{
+    "question": "Let's display, as text, an expression \"y = a * x + b\" where `a` and `b` are replaced by their numerical values. The goal is to have the text composed dynamically based on the number values of `a` and `b`. Here, for the sake of the example, take `a = 13` and `b = 7`.",
+    "answer": "// Define the variables 'a' and 'b'. they must have 13 and 7 as value.\na = 13\nb = 7\n\n// Beware, don't forget the `\\` for the interpolation. use {} to convert numerical value to text.\nexpr = \"y = \\{a} * x + \\{b}\"\n\n// Alternatively, it can also be done with concatenation \nexpr = concat(\"y = \", text(a), \" * x + \", text(b))\n\n// Display the expression\nshow scalar \"My Expression\" with expr\n\n// Alternatively, you can also write:\nshow label expr",
+    "ref": "",
+    "type" : "coding"
+}
+
+
+

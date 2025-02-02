@@ -1,0 +1,6 @@
+{
+  "question": "Create a table Catalog containing different items Name and their color. \"red\" should be a color cited. Create another table containing the same dimension but only with the red items. Show the Name of the red items.",
+  "answer": "```envision\ntable Catalog = with \n  [| as Name, as Color |]\n  [| \"Socks\" , \"red\"    |]\n  [| \"Socks\" , \"blue\"   |]\n  [| \"Shirt\" , \"red\"    |] \n \ntable smallCatalog = where Catalog.Color==\"red\" // broadcast during definition\n \nshow table \"red items\" with\n  smallCatalog.Name\n```",
+  "ref": "",
+  "type": "coding"
+}

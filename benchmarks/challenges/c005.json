@@ -1,0 +1,6 @@
+{
+  "question": "What are the values of A, B and C as computed by the script below?\n\n```envision\ntable T = with\n  [| as X |]\n  [| 1 |]\n  [| 2 |]\n  [| 3 |]\n\nwhere T.X != 2\n  show scalar \"A\" with sum(T.X) // ?\n\n  where T.X != 1\n    show scalar \"B\" with sum(T.X)  // ?\n\nshow scalar \"C\" with sum(T.X)  // ?\n```",
+  "answer": "The value A is computed within the first `where` block, due to the 2-whitespace indent, which filters out the value 2. Thus, we have the values 1 and 3 left. Thus, A = 1 + 3 = 4.\n\nThe value B is computed within the two nested `where` block, due to the 4-whitespace indent, which are filtering out the value 2 (first filter) and the value 1 (second filter). Thus, we only have the value 3 left. Thus, B = 3.\n\nThe value C is computed outside any `where` block, as there is no indent, thus all 3 values are included. Thus, C = 1 + 2 + 3 = 6.\n\nIn summary:\n\n* A = 4\n* B = 3\n* C = 6",
+  "ref": "",
+  "type": "QA"
+}
