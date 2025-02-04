@@ -4,15 +4,22 @@
 from .api import getClient
 from dsl_gen.core.rag import RAGState
 from langchain_core.messages import BaseMessage
+from dsl_gen import CFG
 from typing import List
+import logging
+
+logger = logging.getLogger('dsl_gen')
 
 
 def _generate_answer(messages: List[BaseMessage]):
-    client = getClient()
-    # type(client) = ChatOpenAI
+    client = getClient(CFG.CODER.active_model)
     response = client.invoke(messages)
-    return response.model_dump()
+    response_dict = response.model_dump()
+    logger.debug("Model response: %s...",
+                 response_dict["content"][:100])
+    return response_dict
 
 
-def generate_answer(state: RAGState):
-    return {**state, "answer": _generate_answer(state["messages"])}
+def llm_coder(state: RAGState) -> RAGState:
+    """llm_coder node"""
+    return {**state, "completion": _generate_answer(state["messages"])}

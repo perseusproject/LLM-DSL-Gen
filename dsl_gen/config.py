@@ -5,6 +5,7 @@ import logging
 
 from types import SimpleNamespace
 
+
 class ConfigLoader:
     _instance = None
 
@@ -18,11 +19,13 @@ class ConfigLoader:
         """Convert TOML configuration to nested objects"""
         config_path = os.getenv(env_var)
         if not config_path:
-            raise EnvironmentError(f"Environment variable {env_var} must be set")
+            raise EnvironmentError(
+                f"Environment variable {env_var} must be set")
 
         config_file = Path(config_path)
         if not config_file.exists():
-            raise FileNotFoundError(f"Configuration file does not exist: {config_file}")
+            raise FileNotFoundError(
+                f"Configuration file does not exist: {config_file}")
 
         with open(config_file, "rb") as f:
             raw_config = tomli.load(f)
@@ -37,6 +40,7 @@ class ConfigLoader:
                 data[key] = self._dict_to_namespace(value)
         return SimpleNamespace(**data)
 
+
 # Singleton initialization
 logger = logging.getLogger('global')
 
@@ -46,3 +50,5 @@ try:
     logger.debug("Configuration initialized", CFG)
 except Exception as e:
     raise RuntimeError(f"Configuration initialization failed: {e}") from e
+
+__all__ = ["CFG"]

@@ -17,9 +17,12 @@ _llm_clients = {
     'deepseek': None,
 }
 
-def getClient(backend: Optional[str] = CFG.MODEL_CFG.used_model) -> ChatOpenAI:
+
+def getClient(backend) -> ChatOpenAI:
 
     global _llm_clients
+
+    assert backend in _llm_clients, f"Invalid backend: {backend}"
 
     if _llm_clients[backend] is None:
         cfg = {
@@ -27,13 +30,13 @@ def getClient(backend: Optional[str] = CFG.MODEL_CFG.used_model) -> ChatOpenAI:
             'ollama': MODEL_CFG.Ollama,
             'deepseek': MODEL_CFG.DeepSeek,
         }[backend]
-    
+
         _llm_clients[backend] = ChatOpenAI(
-            model = cfg.model,
-            openai_api_base = cfg.base_url,
-            openai_api_key = cfg.api_key
+            model=cfg.model,
+            openai_api_base=cfg.base_url,
+            openai_api_key=cfg.api_key
         )
-    
+
         logger.info("Model loaded: %s, base_url: %s", cfg.model, cfg.base_url)
 
     return _llm_clients[backend]

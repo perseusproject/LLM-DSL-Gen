@@ -3,7 +3,6 @@
 
 
 import logging
-import json
 from ..config import CFG
 
 from langchain_core.documents import Document
@@ -12,70 +11,55 @@ from langchain_core.prompts import (ChatPromptTemplate,
                                     SystemMessagePromptTemplate,
                                     HumanMessagePromptTemplate)
 
-from typing import Any, List, Optional, TypedDict, Literal
+from typing import Any, List, Optional, TypedDict, Literal, Dict
 from .vector_store import get_vectorstore
 
 logger = logging.getLogger('dsl_gen')
 
-PATH_CFG = CFG.PATH_CFG
-MODEL_CFG = CFG.MODEL_CFG
 EMBEDDING_CFG = CFG.EMBEDDING_CFG
 
 
 class RAGState(TypedDict):
     challenge_path: Optional[str]
     question: Optional[str]
-    question_type: Optional[Literal["QA", "code"]]
+    question_type: Optional[Literal["QA", "coding"]]
 
-    answer: Optional[str]
+    ground_truth: Optional[str]
     ref: Optional[str]
     eval: Optional[bool]
 
     docs: Optional[List[Document]]
     messages: Optional[List[BaseMessage]]
 
-    compiled: Optional[Any]
-    error: Optional[str]
+    completion: Optional[str]
+
+    error: Optional[str]  # The most recent error message
+
+    compilation: Optional[Dict[str, Any]]
+    compilation_attempts: int
+
     judgment: Optional[str]
-
-# QA Splitter Node
-
-
-def qa_splitter(state: RAGState) -> RAGState:
-    # 　either question or challenge_path should be provided
-    assert ("question" in state) != ("challenge_path" in state)
-
-    if state.get("question"):
-        logger.debug("QA Splitter: question provided, eval mode")
-
-        return {**state, "eval": True}
-
-    elif state.get("challenge_path"):
-        logger.debug("QA Splitter: challenge path provided")
-
-        # read the challenge path json file
-        with open(state["challenge_path"]) as f:
-            challenge = json.load(f)
-        return {**state,
-                "eval": False,
-                "question": challenge["question"],
-                "answer": challenge["answer"],
-                "ref": challenge["ref"],
-                "question_type": challenge["type"]}
+    judgment_attempts: int
 
 
 # Retrieve Docs Node
-def _retrieve_docs(query: str, top_k: int = EMBEDDING_CFG.top_k) -> List[Document]:
+
+def _retrieve_docs(query: str, top_k: int = None) -> List[Document]:
     """Enhanced retrieval function"""
+
+    top_k = top_k or EMBEDDING_CFG.top_k
+
     try:
         vectorstore = get_vectorstore()
         # Example of a hybrid retrieval strategy: filtering based on metadata
+        # TODO: Implement a more sophisticated filtering strategy
+        # TODO: Data Augmentation
         return vectorstore.similarity_search(
             query,
-            k=top_k,
-            filter={
-                "source": "official_docs"  # Assuming documents have a source metadata field
-            }
+            k=top_k
+            # ,filter={
+            #     "source": "official_docs"  # Assuming documents have a source metadata field
+            # }
         )
     except Exception as e:
         logger.error(f"Retrieval failed: {str(e)}")
@@ -83,10 +67,10 @@ def _retrieve_docs(query: str, top_k: int = EMBEDDING_CFG.top_k) -> List[Documen
 
 
 def retrieve_docs(state: RAGState) -> RAGState:
-    """Enhanced retrieval node"""
+    """retriever node"""
     query = state["question"]
     docs = _retrieve_docs(query)
-    logger.info(f"Retrieved {len(docs)} docs for query: {query}")
+    logger.info(f"Retrieved {len(docs)} docs for query: {query[:20]}")
     return {**state, "docs": docs}
 
 # Generate Prompt Node
@@ -101,10 +85,9 @@ def _format_context(docs: List[Document]) -> str:
 
 
 def generate_prompt(state: RAGState) -> RAGState:
-    """Construct an enhanced prompt using LangChain native templates"""
-    # Create a hierarchical prompt template
+    """Prompt generator node"""
     prompt_template = ChatPromptTemplate.from_messages([
-        SystemMessage(content=CFG.MODEL_CFG.CODER.personality),
+        SystemMessage(content=CFG.CODER.personality),
         SystemMessagePromptTemplate.from_template(
             "Relevant Context:\n{context}\n\n"
             "Based on the above context and your knowledge, respond to:"
@@ -121,6 +104,11 @@ def generate_prompt(state: RAGState) -> RAGState:
         question=state["question"]
     )
 
+    logger.debug(f"Generated prompt: {formatted_prompt[:100]}")
+
     # Changed to messages to be compatible with LCEL
     # LangChain Enhanced Language model
     return {**state, "messages": formatted_prompt}
+
+
+__all__ = ["retrieve_docs", "generate_prompt"]
