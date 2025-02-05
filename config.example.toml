@@ -5,24 +5,6 @@ REF_PATH = "D:/Projects/PSC/LLM-DSL-Gen/refs"
 CHALLENGES_PATH = "D:/Projects/PSC/LLM-DSL-Gen/benchmarks/challenges"
 VECTOR_DB_DIR = "D:/Projects/PSC/LLM-DSL-Gen/vector_db"
 
-# OpenAI Configuration
-[MODEL_CFG.OpenAI]
-model = "gpt-3.5-turbo"
-api_key = "sk-xxxx"
-base_url = "https://api.openai.com/v1"
-
-# Ollama Configuration
-[MODEL_CFG.Ollama]
-model = "deepseek-r1:7b"
-api_key = "placeholder"
-base_url = "http://localhost:11434/v1"
-
-# DeepSeek Configuration
-[MODEL_CFG.DeepSeek]
-model = "deepseek-ai/DeepSeek-R1"
-api_key = "sk-xxxx"
-base_url = "https://api.siliconflow.com/v1"
-
 # Embedding
 [EMBEDDING_CFG]
 embedding_model = "hf/sentence-transformers/all-mpnet-base-v2"
@@ -32,7 +14,7 @@ chunk_size = 500
 chunk_overlap = 20
 
 [CODER]
-active_model = "openai"
+active_model = "openai" # either "openai" or "ollama" or "deepseek"
 personality = """You are a proficient coder in a Domain Specific Language called Envision. \
 Your task is to generate response to the given challenge. \
 Some challenges will ask you to generate Envision code,\
@@ -106,21 +88,3 @@ The final character of your response should be a digit, either 0 (Incorrect) or 
 # Let's think aloud step by step before making your judgement. Tell each ACCEPTABLE or UNACCEPTABLE point. \
 # At the end of your output, you should judge 0 if there is anything UNACCEPTABLE (even only 1 mark of UNACCEPTABLE) in the STUDENT ANSWER;\
 # and judge 1 if everything is ACCEPTABLE. End your judgment by the digit either 0 or 1. """
-
-# OpenAI Configuration
-[MODEL_CFG.OpenAI]
-model = "gpt-3.5-turbo"
-api_key = "sk-xxxx"
-base_url = "https://api.openai.com/v1"
-
-# Ollama Configuration
-[MODEL_CFG.Ollama]
-model = "deepseek-r1:7b"
-api_key = "placeholder"
-base_url = "http://localhost:11434/v1"
-
-# DeepSeek Configuration
-[MODEL_CFG.DeepSeek]
-model = "deepseek-ai/DeepSeek-R1"
-api_key = "sk-xxxx"
-base_url = "https://api.siliconflow.com/v1"

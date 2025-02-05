@@ -12,7 +12,7 @@ langgraph-checkpoint==2.0.10
 langgraph-sdk==0.1.51
 langchain==0.3.16
 python-magic==0.4.27
-python-magic-bin==0.4.14
+python-magic-bin==0.4.14; sys_platform != 'darwin'
 openai==1.60.2
 tomli==2.2.1
 pydantic==2.10.6

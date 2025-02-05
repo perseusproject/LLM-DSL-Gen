@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # dsl_gen/agents/api.py
 
-from ..config import CFG
+from ..config import API
 from langchain_openai import ChatOpenAI
 
 import logging
@@ -9,7 +9,7 @@ from typing import Optional
 
 logger = logging.getLogger('dsl_gen')
 
-MODEL_CFG = CFG.MODEL_CFG
+MODEL_CFG = API.MODEL_CFG
 
 _llm_clients = {
     'openai': None,

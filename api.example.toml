@@ -1,0 +1,17 @@
+# OpenAI Configuration
+[MODEL_CFG.OpenAI]
+model = "gpt-3.5-turbo"
+api_key = "sk-xxxx"
+base_url = "https://api.openai.com/v1"
+
+# Ollama Configuration
+[MODEL_CFG.Ollama]
+model = "deepseek-r1:7b"
+api_key = "placeholder"
+base_url = "http://localhost:11434/v1"
+
+# DeepSeek Configuration
+[MODEL_CFG.DeepSeek]
+model = "deepseek-ai/DeepSeek-R1"
+api_key = "sk-xxxx"
+base_url = "https://api.siliconflow.com/v1"
