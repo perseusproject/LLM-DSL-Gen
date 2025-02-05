@@ -1,6 +1,12 @@
 # LLM-DSL-Gen
 
-## Change Log
+## Change log
+
+### v0.1.2 - 2025-02-05
+- Defined APIs for other retrieval methods.
+- Sanity check on each node's entry.
+- Defined error handling in the flow (Not implemented yet)
+- Better logging
 
 ### v0.1.1 - 2025-02-05
 - Added safe print for `SimpleNamespace` to protect your API keys
@@ -11,12 +17,18 @@
 - Included configuration setup and environment variable instructions
 - Provided example usage and testing instructions
 
-## Future Work
-- TODO: Implement test modules for evaluation (Test-Driven Development Let's Go!)
-- TODO: Implement error handling when encountering an compilation error in the RAG flow
-- TODO: Improve Faiss vector database construction for better performance
-- TODO: Implement API for other retrieval methods
-- TODO: Implement a AIO pipeline for evaluation
+## Future work
+
+- Basic functionalities
+    - TODO: Implement test modules for evaluation (Test-Driven Development Let's Go!)
+    - TODO: Refine error handling in the RAG flow
+- Better RAG:
+    - TODO: Improve Faiss vector database construction for better performance
+    - TODO: Add refs to the RAG flow for better completion results
+- Visualization:
+    - TODO: Implement a visualization module for the RAG result
+- Evaluation:
+    - TODO: Implement a AIO pipeline for evaluation
 
 ## Installation
 
@@ -143,6 +155,31 @@ cd tests
 python -m unittest test test_llm_completion
 ```
 
+## How to collaborate: Pull Request
+
+1. Fork the repository
+```bash
+git clone https://github.com/saturntsen/LLM-DSL-Gen.git
+cd LLM-DSL-Gen
+```
+
+2. Create a new branch
+```bash
+git checkout -b feature-xxx
+```
+
+3. Make your changes
+```bash
+git add .
+git commit -m "Add new feature/fix bug"
+git push origin feature-xxx
+```
+
+4. Create a Pull Request
+
+Go to the [repository](https://github.com/saturntsen/LLM-DSL-Gen) and create a new Pull Request.
+
+5. Wait for the review
 
 ## (Optional) Ollama backend setup
 

@@ -4,82 +4,86 @@
 from typing import Dict, Any
 import requests
 import logging
-from dsl_gen.core.rag import RAGState
-from dsl_gen import CFG
+from ..core.rag import RAGState
+from ..config import CFG
 from langgraph.graph import END
 
 logger = logging.getLogger('dsl_gen')
 
 
 def check_compilation(script: str) -> Dict[str, Any]:
+    """
+    Checks the compilation of a given script using the Lokad TryCompile service.
+    Args:
+        script (str): The script to be compiled.
+    Returns:
+        Dict[str, Any]: A dictionary containing the compilation result:
+            - "valid" (bool): True if the compilation is successful, False otherwise.
+            - "messages" (list): A list of error messages if the compilation fails.
+    Raises:
+        Exception: If there is a connection error or the service is unavailable.
+    """
 
     logger.debug("Checking compilation for script:\n%s", script)
 
-    """增强版编译检查，返回结构化结果"""
     url = "https://try.lokad.com/w/script/trycompile"
     payload = {"Script": script}
 
     try:
         response = requests.post(url, json=payload, timeout=10)
-
         if response.status_code == 200:
             result = response.json()
             if result["IsCompOk"]:
+                logger.debug("Compilation successful")
                 return {
                     "valid": True,
                     "messages": [],
-                    "raw_output": result
                 }
-
-            # 提取编译错误详情
+            logger.debug("Compilation failed")
             errors = [
                 f"Line {msg['Line']}: {msg['Text']} (Severity: {msg['Severity']})"
                 for msg in result.get("CompMessages", [])
             ]
-            return {
-                "valid": False,
-                "messages": errors,
-                "raw_output": result
-            }
+            return {"valid": False, "messages": errors}
 
+        logger.error('Compilation service unavailable (HTTP %s)',
+                     response.status_code)
         return {
             "valid": False,
             "messages": [f"Service unavailable (HTTP {response.status_code})"],
-            "raw_output": None
         }
 
     except Exception as e:
+        logger.error('Connection error: %s', str(e))
         return {
             "valid": False,
-            "messages": [f"Connection error: {str(e)}"],
-            "raw_output": None
+            "messages": [f"Connection error: {str(e)}"]
         }
 
 
 def compile_code(state: RAGState) -> RAGState:
-    """compiler node"""
+    """Compiler node
+    ### Input fields
+        question_type (str): The type of question (QA or coding)
+        completion (str): The code to be compiled.
+    ### Fields modified
+        compilation_result (dict): Last compilation result.
+        compilation_attempts (int): Number of compilation attempts.
+    """
+
     if state["question_type"] == "QA":
         logger.debug("Skipping compilation for QA question")
         return {**state, "compilation": {"valid": True, "errors": [], "raw_data": None, "attempt": 0}}
 
+    assert "completion" in state, "completion field is required"
+
     code = state.get("completion", "")
+
     current_attempt = state.get("compilation_attempts", 0) + 1
 
-    # 执行编译检查
     compilation_result = check_compilation(code)
 
-    state_updates = {
-        "compilation": {
-            "valid": compilation_result["valid"],
-            "errors": compilation_result["messages"],
-            "raw_data": compilation_result["raw_output"],
-            "attempt": current_attempt
-        },
-        "compilation_attempts": current_attempt,
-        "error": None if compilation_result["valid"] else f"Compilation failed (Attempt {current_attempt})"
-    }
-
-    # 记录诊断日志
+    # Log compilation results
     if not compilation_result["valid"]:
         logger.warning(
             f"Compilation failed (Attempt {current_attempt}):\n{code}")
@@ -87,19 +91,11 @@ def compile_code(state: RAGState) -> RAGState:
     else:
         logger.info(f"Code compiled successfully (Attempt {current_attempt})")
 
-    state.update(state_updates)
+    state.update({
+        "compilation_result": compilation_result,
+        "compilation_attempts": current_attempt,
+    })
     return state
-
-
-def handle_compilation(state: RAGState) -> str:
-    max_retries = CFG.COMPILER.max_retries
-    # 如果编译成功或超过最大重试次数，进入judge环节
-    if state["compilation"]["valid"]:
-        return "judge"
-    elif state["compilation_attempts"] >= max_retries:
-        return END
-    else:
-        return "llm_coder"
 
 
 __all__ = ["compile_code", "handle_compilation"]

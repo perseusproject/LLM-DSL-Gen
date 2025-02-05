@@ -6,7 +6,7 @@ import logging
 from ..config import CFG
 
 from langchain_core.documents import Document
-from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.messages import BaseMessage, SystemMessage, AIMessage
 from langchain_core.prompts import (ChatPromptTemplate,
                                     SystemMessagePromptTemplate,
                                     HumanMessagePromptTemplate)
@@ -16,29 +16,39 @@ from .vector_store import get_vectorstore
 
 logger = logging.getLogger('dsl_gen')
 
-EMBEDDING_CFG = CFG.EMBEDDING_CFG
-
 
 class RAGState(TypedDict):
-    challenge_path: Optional[str]
-    question: Optional[str]
-    question_type: Optional[Literal["QA", "coding"]]
+    # Input
+    challenge_path: Optional[str]  # Path to the challenge json file
+    question: Optional[str]  # Question to be answered
+    question_type: Optional[Literal["QA", "coding"]]  # Question type
 
-    ground_truth: Optional[str]
-    ref: Optional[str]
-    eval: Optional[bool]
+    # For evaluation mode
+    ground_truth: Optional[str]  # Ground truth answer
+    ref: Optional[str]  # Reference answer
 
+    # Retrieved documents
     docs: Optional[List[Document]]
+
+    # Input to the coder
     messages: Optional[List[BaseMessage]]
 
-    completion: Optional[str]
+    # Output from the coder
+    raw_completion: Optional[AIMessage]
+    completion: Optional[str]  # The last completion
 
-    error: Optional[str]  # The most recent error message
-
-    compilation: Optional[Dict[str, Any]]
+    # Output from the compiler
+    # compilation_result = {
+    #     "valid": bool,
+    #     "messages": List[str]
+    # }
+    compilation_result: Optional[Dict[str, Any]]
     compilation_attempts: int
 
+    # Output from the judge
+    # Either 'correct', 'incorrect' or 'internal judgment error'
     judgment: Optional[str]
+    judge_output: Optional[str]
     judgment_attempts: int
 
 
@@ -47,13 +57,13 @@ class RAGState(TypedDict):
 def _retrieve_docs(query: str, top_k: int = None) -> List[Document]:
     """Enhanced retrieval function"""
 
-    top_k = top_k or EMBEDDING_CFG.top_k
+    top_k = top_k or CFG.EMBEDDING_CFG.top_k
 
     try:
         vectorstore = get_vectorstore()
         # Example of a hybrid retrieval strategy: filtering based on metadata
         # TODO: Implement a more sophisticated filtering strategy
-        # TODO: Data Augmentation
+        # TODO: Add references to the RAG flow for better completion results
         return vectorstore.similarity_search(
             query,
             k=top_k
@@ -67,10 +77,24 @@ def _retrieve_docs(query: str, top_k: int = None) -> List[Document]:
 
 
 def retrieve_docs(state: RAGState) -> RAGState:
-    """retriever node"""
+    """Document retrieval node
+    ### Input fields
+        question (str): The question to be answered.
+        question_type (str): The type of question (QA or coding) # Not really used
+    ### Fields added
+        docs (List[Document]): The retrieved documents.
+    """
+    # Input fields: question, question_type
+    # Output fields: docs
+
+    # Defensive programming is IMPORTANT!!!
+    assert "question" in state, "Question must be provided in the state"
+
     query = state["question"]
+    logger.debug(f"Retrieving docs for query: {query}")
+
     docs = _retrieve_docs(query)
-    logger.info(f"Retrieved {len(docs)} docs for query: {query[:20]}")
+    logger.info(f"Retrieved {len(docs)} docs")
     return {**state, "docs": docs}
 
 # Generate Prompt Node
@@ -85,7 +109,21 @@ def _format_context(docs: List[Document]) -> str:
 
 
 def generate_prompt(state: RAGState) -> RAGState:
-    """Prompt generator node"""
+    """Document retrieval node
+    ### Input fields
+        question (str): The question to be answered.
+        question_type (str): The type of question (QA or coding)
+        docs (List[Document]): The retrieved documents.
+    ### Fields added
+        messages (List[BaseMessage]): The formatted prompt messages.
+    """
+    assert ("question" in state) and (
+        state["question"] is not None), "Question must be provided in the state"
+    assert ("question_type" in state) and (
+        state["question_type"] is not None), "Question type must be provided in the state"
+    assert ("docs" in state) and (
+        state["docs"] is not None), "Retrieved documents must be provided in the state"
+
     prompt_template = ChatPromptTemplate.from_messages([
         SystemMessage(content=CFG.CODER.personality),
         SystemMessagePromptTemplate.from_template(

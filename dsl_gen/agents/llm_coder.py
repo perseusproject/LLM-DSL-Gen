@@ -1,25 +1,34 @@
 # -*- coding: utf-8 -*-
 # dsl_gen/agents/llm_coder.py
 
-from .api import getClient
-from dsl_gen.core.rag import RAGState
-from langchain_core.messages import BaseMessage
-from dsl_gen import CFG
+from .client import getClient
+from ..core.rag import RAGState
+from ..config import CFG
+from langchain_core.messages import BaseMessage, AIMessage
 from typing import List
 import logging
 
 logger = logging.getLogger('dsl_gen')
 
 
-def _generate_answer(messages: List[BaseMessage]):
+def _generate_answer(messages: List[BaseMessage]) -> AIMessage:
     client = getClient(CFG.CODER.active_model)
     response = client.invoke(messages)
-    response_dict = response.model_dump()
-    logger.debug("Model response: %s...",
-                 response_dict["content"][:100])
-    return response_dict
+    logger.debug("Model's response:\n %s\n", response.model_dump()["content"])
+    return response
 
 
 def llm_coder(state: RAGState) -> RAGState:
-    """llm_coder node"""
-    return {**state, "completion": _generate_answer(state["messages"])}
+    """LLM Coder node
+    ### Input fields
+        messages (str): The formatted prompt messages, including the question,
+        question type, and the retrieved documents.
+    ### Fields added
+        raw_completion (str): The generated raw completion.
+    """
+    assert "messages" in state, "messages field is required"
+    assert isinstance(state["messages"], list), "messages field must be a list"
+    assert all(isinstance(m, BaseMessage) for m in state["messages"]), \
+        "messages field must be a list of BaseMessage instances"
+
+    return {**state, "raw_completion": _generate_answer(state["messages"])}

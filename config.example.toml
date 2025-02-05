@@ -1,3 +1,5 @@
+PRETTY_PRINT = false
+
 # Paths
 [PATH_CFG]
 TUTO_PATH = "D:/Projects/PSC/LLM-DSL-Gen/docs"
@@ -9,6 +11,7 @@ VECTOR_DB_DIR = "D:/Projects/PSC/LLM-DSL-Gen/vector_db"
 [EMBEDDING_CFG]
 embedding_model = "hf/sentence-transformers/all-mpnet-base-v2"
 #embedding_model = openai/text-embedding-3-small
+SEED = 114514
 top_k = 20
 chunk_size = 500
 chunk_overlap = 20

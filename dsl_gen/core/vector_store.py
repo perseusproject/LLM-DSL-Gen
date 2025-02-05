@@ -18,11 +18,9 @@ from langchain_community.vectorstores import FAISS
 
 from typing import List, Optional
 from ..config import CFG
+from ..utils import set_seed
 
 logger = logging.getLogger('dsl_gen')
-
-PATH_CFG = CFG.PATH_CFG
-EMBEDDING_CFG = CFG.EMBEDDING_CFG
 
 
 _embeddings_instance = None
@@ -32,8 +30,8 @@ def _get_embeddings(emb_model: str) -> Embeddings:
     global _embeddings_instance
 
     if _embeddings_instance is None:
-        logger.info("Loading embedding model into memory: %s", emb_model)
-
+        set_seed(CFG.EMBEDDING_CFG.SEED)
+        logger.info("Loading embedding model into RAM: %s", emb_model)
         if emb_model.startswith("openai/"):
             _embeddings_instance = OpenAIEmbeddings(model=emb_model[7:])
         elif emb_model.startswith("hf/"):
@@ -44,8 +42,8 @@ def _get_embeddings(emb_model: str) -> Embeddings:
             raise ValueError(f"Unsupported embedding model: {emb_model}")
 
     else:
-        logging.info("Reusing existing embeddings instance: %s",
-                     _embeddings_instance)
+        logging.debug("Reusing existing embeddings instance: %s",
+                      _embeddings_instance)
     return _embeddings_instance
 
 
@@ -59,7 +57,8 @@ def _load_cached_vectorstore(vecdb_path: str, embeddings: Embeddings) -> Optiona
                 allow_dangerous_deserialization=True  # 允许加载自定义类
             )
         except Exception as e:
-            logger.warning(f"Failed to load cached vectorstore: {str(e)}")
+            logger.debug(f"Cached vectorstore not found: {vecdb_path}")
+            logger.debug(f"Caught exception: {str(e)}")
             return None
     return None
 
@@ -117,8 +116,8 @@ def _process_file(file_path: str) -> List[Document]:
         # Phase 3: Secondary split (preserve restored whitespace)
         splitter = RecursiveCharacterTextSplitter(
             separators=markdown_separators,
-            chunk_size=EMBEDDING_CFG.chunk_size,
-            chunk_overlap=EMBEDDING_CFG.chunk_overlap,
+            chunk_size=CFG.EMBEDDING_CFG.chunk_size,
+            chunk_overlap=CFG.EMBEDDING_CFG.chunk_overlap,
             is_separator_regex=True,
             keep_separator=True
         )
@@ -130,7 +129,7 @@ def _process_file(file_path: str) -> List[Document]:
             # Carry original file path as metadata
             doc.metadata["source"] = file_path
 
-        logger.debug(f"Processed {file_path}: {len(splits)} documents")
+        logger.debug(f"Generated {len(splits)} splits from {file_path}")
 
         return splits
 
@@ -141,7 +140,7 @@ def _process_file(file_path: str) -> List[Document]:
 
 def get_all_markdown_files(root_dir: str) -> List[str]:
     file_paths = []
-    for root, _, files in os.walk(PATH_CFG.TUTO_PATH):
+    for root, _, files in os.walk(CFG.PATH_CFG.TUTO_PATH):
         for file in files:
             if file.endswith(".md"):
                 full_path = osp.join(root, file)
@@ -151,8 +150,8 @@ def get_all_markdown_files(root_dir: str) -> List[str]:
 
 def _build_vectorstore() -> FAISS:
     """带本地缓存的文档处理流程"""
-    vecdb_base = PATH_CFG.VECTOR_DB_DIR
-    emb_model = EMBEDDING_CFG.embedding_model
+    vecdb_base = CFG.PATH_CFG.VECTOR_DB_DIR
+    emb_model = CFG.EMBEDDING_CFG.embedding_model
 
     if not osp.exists(vecdb_base):
         os.makedirs(vecdb_base, exist_ok=True)
@@ -175,7 +174,7 @@ def _build_vectorstore() -> FAISS:
     # Chunking and splitting logic for markdown files
     all_docs = []
 
-    file_paths = get_all_markdown_files(PATH_CFG.TUTO_PATH)
+    file_paths = get_all_markdown_files(CFG.PATH_CFG.TUTO_PATH)
 
     try:
         from tqdm import tqdm

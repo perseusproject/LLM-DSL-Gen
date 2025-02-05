@@ -5,11 +5,8 @@ from ..config import API
 from langchain_openai import ChatOpenAI
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger('dsl_gen')
-
-MODEL_CFG = API.MODEL_CFG
 
 _llm_clients = {
     'openai': None,
@@ -26,9 +23,9 @@ def getClient(backend) -> ChatOpenAI:
 
     if _llm_clients[backend] is None:
         cfg = {
-            'openai': MODEL_CFG.OpenAI,
-            'ollama': MODEL_CFG.Ollama,
-            'deepseek': MODEL_CFG.DeepSeek,
+            'openai': API.MODEL_CFG.OpenAI,
+            'ollama': API.MODEL_CFG.Ollama,
+            'deepseek': API.MODEL_CFG.DeepSeek,
         }[backend]
 
         _llm_clients[backend] = ChatOpenAI(
