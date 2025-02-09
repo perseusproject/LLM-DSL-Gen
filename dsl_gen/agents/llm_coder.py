@@ -31,4 +31,5 @@ def llm_coder(state: RAGState) -> RAGState:
     assert all(isinstance(m, BaseMessage) for m in state["messages"]), \
         "messages field must be a list of BaseMessage instances"
 
-    return {**state, "raw_completion": _generate_answer(state["messages"])}
+    state.update({"raw_completion": _generate_answer(state["messages"])})
+    return state

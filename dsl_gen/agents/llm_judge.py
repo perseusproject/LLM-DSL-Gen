@@ -58,7 +58,9 @@ def judge_answer(state: RAGState) -> RAGState:
             ref (str)
     ### Fields modified
         judgement (str): 'correct', 'incorrect' or 'internal judgment error'
+        judge_output (str): The raw output from the judge
         judgement_attempts (int): Number of compilation attempts.
+        final_state (str): 'success', 'compilation error' or 'judgment error'
     """
     judgement_attempts = state.get("judge_attempts", 0) + 1
 
@@ -91,6 +93,7 @@ def judge_answer(state: RAGState) -> RAGState:
             "judge_attempts": judgement_attempts,
             "judge_output": response.content,
             "judgment": judgment,
+            "final_state": "success" if judgment == "correct" else "judgment error"
         })
 
         logger.info(f"Judgment: {judgment}")
@@ -102,6 +105,7 @@ def judge_answer(state: RAGState) -> RAGState:
             "judge_attempts": judgement_attempts,
             "judge_output": response.content,
             "judgment": "internal judgment error",
+            "final_state": "judgment error"
         })
         return state
 

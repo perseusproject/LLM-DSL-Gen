@@ -10,21 +10,14 @@ logger = logging.getLogger('dsl_gen')
 
 class SafeNamespace(SimpleNamespace):
     """Namespace that masks sensitive information when printed, with multiline indentation."""
-    # Skip if you are unfamiliar with the __repr__ and __str__ methods, this is not important for the project
-    # In a nutshell, we prevent the API key from being printed in the logs
 
     def __repr__(self) -> str:
         return self._safe_repr()
 
     def __str__(self) -> str:
-        # Make str() output consistent with repr()
         return self._safe_repr()
 
     def _safe_repr(self, indent_level: int = 0) -> str:
-        """
-        Construct a multiline string similar to SimpleNamespace's repr,
-        but mask 'api_key' fields and remove extra spaces around "=namespace(".
-        """
         indent_str = "    " * indent_level
         child_indent_str = "    " * (indent_level + 1)
 
@@ -51,6 +44,21 @@ class SafeNamespace(SimpleNamespace):
             lines.extend(items)
         lines.append(f"{indent_str})")
         return "\n".join(lines)
+
+    def to_dict(self):
+        """
+        Convert the SafeNamespace to a dictionary, masking 'api_key' fields.
+        """
+        result = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, SafeNamespace):
+                result[k] = v.to_dict()
+            else:
+                if k.lower() == "api_key":
+                    result[k] = '****'
+                else:
+                    result[k] = v
+        return result
 
 
 def set_seed(seed):

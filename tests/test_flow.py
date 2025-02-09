@@ -11,9 +11,6 @@ import os
 import random
 # %%
 
-# TODO
-# Unit test on all modules
-
 
 class TestRAGFlow(unittest.TestCase):
 
@@ -22,7 +19,7 @@ class TestRAGFlow(unittest.TestCase):
         log_path = Path(__file__).parent/'logs' / \
             f"{time.strftime('%Y%m%d_%H%M%S')}_test_api.log"
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             handlers=[logging.StreamHandler(),
                       logging.FileHandler(log_path)]
@@ -36,21 +33,23 @@ class TestRAGFlow(unittest.TestCase):
 
         selected_file = Path(challenges_path) / "c000.json"
         result = self.flow.invoke({"challenge_path": selected_file})
-        print(result["compiled"])
+        print(result["raw_completion"])
 
-        selected_file = random.choice(os.listdir(challenges_path))
+        selected_file = Path(challenges_path) / "c010.json"
         result = self.flow.invoke({"challenge_path": selected_file})
-        print(result["compiled"])
+        print(result["raw_completion"])
 
         question = "Create a table Catalog containing 3 columns : 10 \"item\"s and their \"OrderDate\" and \"DeliveryDate\" (the dates should be in date data type). Define a new column \"Leadtime\" for each item. Finally, show the table containing each item with their Leadtime, but only for those with Leadtime longer than 20 days."
-        result = self.flow.invoke({"question": question})
-        print(result["compiled"])
+        result = self.flow.invoke(
+            {"question": question, "question_type": "coding"})
 
-    def test_retry_flow(self):
-        pass
-        # raise NotImplementedError("Test not implemented")
+        question = "Tell me about Lokad Envision"
+        result = self.flow.invoke(
+            {"question": question, "question_type": "QA"})
+        print(result["raw_completion"])
 
 
 # %%
 if __name__ == "__main__":
+    print("Running tests on RAG Flow")
     unittest.main()

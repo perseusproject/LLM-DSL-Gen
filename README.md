@@ -2,6 +2,16 @@
 
 ## Change log
 
+### v0.2.0 - 2025-02-09
+
+- Basic functionalities
+  - Implemented test modules for evaluation (Test-Driven Development Let's Go!)
+  - Refine error handling in the RAG flow
+  - Finished Tests for RAG flow - All tests passed!
+- Visualization
+  - Implemented a visualization module for the RAG result 
+  - Implemented a AIO pipeline for evaluation
+  
 ### v0.1.2 - 2025-02-05
 - Defined APIs for other retrieval methods.
 - Sanity check on each node's entry.
@@ -19,16 +29,16 @@
 
 ## Future work
 
-- Basic functionalities
-    - TODO: Implement test modules for evaluation (Test-Driven Development Let's Go!)
-    - TODO: Refine error handling in the RAG flow
 - Better RAG:
-    - TODO: Improve Faiss vector database construction for better performance
+    - TODO: Improve FAISS vector database construction for better performance
     - TODO: Add refs to the RAG flow for better completion results
-- Visualization:
-    - TODO: Implement a visualization module for the RAG result
-- Evaluation:
-    - TODO: Implement a AIO pipeline for evaluation
+- More retrieval methods
+  - TODO: Add support for other retrieval methods
+- Evaluation
+  - TODO: Add more evaluation metrics apart from ACC
+  - TODO: Write more challenges
+
+
 
 ## Installation
 
@@ -147,12 +157,6 @@ print(result["compiled"])
 ```bash
 cd tests
 python -m unittest discover
-```
-
-or run a specific test
-```bash
-cd tests
-python -m unittest test test_llm_completion
 ```
 
 ## How to collaborate: Pull Request

@@ -2,7 +2,9 @@
 # dsl_gen/core/flows.py
 import json
 from langgraph.graph import StateGraph, END
-from .rag import RAGState, retrieve_docs, generate_prompt
+from .state import RAGState
+from .rag import retrieve_docs
+from dsl_gen.core.prompts import generate_prompt, handle_compilation_error, handle_judge_error
 from ..config import CFG
 from ..agents.llm_coder import llm_coder
 from ..agents.lokad_compiler import compile_code
@@ -37,6 +39,7 @@ def qa_splitter(state: RAGState, pretty_print: Optional[bool] = None) -> RAGStat
             question_type (str): The type of question.
             ground_truth (str): The ground truth answer.
             ref (str): Title of the related reference document.
+            final_state (str): set to 'pending'.
         Else (if a question is provided):
             The state is returned as is.
     ### Raises
@@ -52,6 +55,8 @@ def qa_splitter(state: RAGState, pretty_print: Optional[bool] = None) -> RAGStat
     pretty_print = pretty_print or CFG.PRETTY_PRINT
 
     if state.get("question"):
+        assert "question_type" in state, \
+            "Question type must be provided in eval mode"
         logger.debug("QA Splitter: question provided, eval mode")
     elif state.get("challenge_path"):
         logger.debug("QA Splitter: challenge path provided, path=%s",
@@ -60,10 +65,12 @@ def qa_splitter(state: RAGState, pretty_print: Optional[bool] = None) -> RAGStat
         # read the challenge path json file
         with open(state["challenge_path"]) as f:
             challenge = json.load(f)
-        state.update({"question": challenge["question"],
+        state.update({"challenge_path": str(state["challenge_path"]),
+                      "question": challenge["question"],
                      "ground_truth": challenge["answer"],
                       "ref": challenge["ref"],
-                      "question_type": challenge["type"]})
+                      "question_type": challenge["type"],
+                      "final_state": "pending"})
     if logger.isEnabledFor(logging.INFO):
         if pretty_print:
             pretty_display(["**Question**", state["question"]])
@@ -121,38 +128,28 @@ def completion_peeler(state: RAGState, pretty_print: Optional[bool] = None) -> R
     return state
 
 
-def handle_compilation(state: RAGState) -> str:
-    max_retries = CFG.COMPILER.max_retries
-    # if compilation is successful, move to the judge
-    if state["compilation_result"]["valid"]:
-        return "judge"
-    elif state["compilation_attempts"] >= max_retries:
-        logger.info("Max retires hit on compilation: %s", max_retries)
-        return END
-    else:
-        return "compilation_error_handler"
-
-
-def handle_judgment(state: RAGState):
+def handle_judgment(state: RAGState) -> str:
     """Enhanced judgment logic
     ### Input fields
         judgment (str)
         judge_output (str)
     ### Fields modified
-        judgement (
         judgement_attempts (int): Number of compilation attempts.
+        final_state (str): when END is reached
     """
     assert "judgment" in state, "State missing required key 'judgment'"
-    assert "judge_attempts" in state, "State missing required key 'judgment_attempts'"
+    assert "judge_attempts" in state, "State missing required key 'judge_attempts'"
     assert state["judgment"] in ['correct', 'incorrect', 'internal judgment error'], \
         "Judgment must be one of 'correct', 'incorrect', or 'internal judgment error'"
     # Success condition
     if state["judgment"] == "correct":
         logger.info("Answer passed quality check")
+        state["final_state"] = "success"
         return END
     # Max hit
     if state["judge_attempts"] >= CFG.JUDGE.max_retries:
         logger.warning("Reached maximum review attempts, forcing output")
+        state["final_state"] = "judgment error"
         return END
     # Success condition
     if state["judgment"] == "incorrect":
@@ -163,19 +160,17 @@ def handle_judgment(state: RAGState):
         return "judge"
 
 
-def handle_compilation_error(state: RAGState):
-    # TODO: Refine error handling in the RAG flow
-    return state
-
-
-def handle_judge_error(state: RAGState):
-    # TODO: Refine error handling in the RAG flow
-    return state
-
-
-def visualize_results(state: RAGState) -> None:
-    # TODO: Implement a visualization module for the RAG result
-    raise NotImplementedError("Visualize results not implemented yet")
+def handle_compilation(state: RAGState) -> str:
+    max_retries = CFG.COMPILER.max_retries
+    # if compilation is successful, move to the judge
+    if state["question_type"] == "QA" or state["compilation_result"]["valid"]:
+        return "judge"
+    elif state["compilation_attempts"] >= max_retries:
+        logger.info("Max retires hit on compilation: %s", max_retries)
+        state["final_state"] = "compilation error"
+        return END
+    else:
+        return "compilation_error_handler"
 
 
 def build_rag_flow():
@@ -186,24 +181,7 @@ def build_rag_flow():
     workflow.add_node("retriever", retrieve_docs)
     workflow.add_node("prompt_generator", generate_prompt)
     # Coder
-    workflow.add_conditional_edges(
-        "compiler",
-        handle_compilation,
-        {
-            "judge": "judge",
-            "compilation_error_handler": "compilation_error_handler",
-            END: END
-        }
-    )
-    workflow.add_conditional_edges(
-        "judge",
-        handle_judgment,
-        {
-            "judge_error_handler": "judge_error_handler",
-            "judge": "judge",
-            END: END
-        }
-    )
+
     workflow.add_node("llm_coder", llm_coder)
     workflow.add_node("completion_peeler", completion_peeler)
     # Compiler
@@ -223,5 +201,22 @@ def build_rag_flow():
     workflow.add_edge("judge_error_handler", "llm_coder")
 
     workflow.add_edge("compilation_error_handler", "llm_coder")
-
+    workflow.add_conditional_edges(
+        "compiler",
+        handle_compilation,
+        {
+            "judge": "judge",
+            "compilation_error_handler": "compilation_error_handler",
+            END: END
+        }
+    )
+    workflow.add_conditional_edges(
+        "judge",
+        handle_judgment,
+        {
+            "judge_error_handler": "judge_error_handler",
+            "judge": "judge",
+            END: END
+        }
+    )
     return workflow.compile()

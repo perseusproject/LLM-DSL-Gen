@@ -94,6 +94,7 @@ def compile_code(state: RAGState) -> RAGState:
     state.update({
         "compilation_result": compilation_result,
         "compilation_attempts": current_attempt,
+        "final_state": "compilation error" if not compilation_result["valid"] else "pending"
     })
     return state
 

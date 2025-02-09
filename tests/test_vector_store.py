@@ -29,10 +29,7 @@ class TestRAGFlow(unittest.TestCase):
         self.vectorstore = None
 
     def test_read_from_file(self):
-        self.vectorstore = get_vectorstore(
-            emb_model=CFG.EMBEDDING_CFG.embedding_model,
-            vecdb_path="D:\Projects\PSC\LLM-DSL-Gen\vector_db\vectorstore_hf_sentence-transformers_all-mpnet-base-v2"
-        )
+        self.vectorstore = get_vectorstore()
 
 
 # %%
