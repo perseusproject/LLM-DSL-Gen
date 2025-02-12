@@ -29,12 +29,40 @@
 
 ## Future work
 
-- Better RAG:
-    - TODO: Improve FAISS vector database construction for better performance
-    - TODO: Add refs to the RAG flow for better completion results
-- More retrieval methods
-  - TODO: Add support for other retrieval methods
-- Evaluation
+### RAG
+- Data pre-processing
+  - Data cleaning
+  - Improve chunking strategies
+    - Recursive chunking
+    - Semantic chunking
+    - LLM-based chunking
+- Pre-retrieval
+  - Query rewriting
+  - Query expansion
+  - Query decomposition
+  - Query routing
+- Retrieval
+  - Metadata filtering
+  - Hybrid Search
+- Post-retrieval
+  - Re-ranking
+  - Context compression
+  - LLM fine-tuning
+  - Context enhancement with metadata
+    
+<p align="center">
+<img src="notes/RAG.jpg" alt="RAG Techniques" width="50%">
+<br>
+<em>Source: Weaviate Advanced RAG Techniques</em>
+</p>
+
+
+
+### KAG
+
+- For Thibaut
+
+### Evaluation
   - TODO: Add more evaluation metrics apart from ACC
   - TODO: Write more challenges
 
