@@ -25,6 +25,7 @@ install_requires = [
 
 if sys.platform == 'win32':
     install_requires.append('python-magic-bin==0.4.14')
+    install_requires.append('pre-commit')
 
 setup(
     name='llm-dsl-gen',
