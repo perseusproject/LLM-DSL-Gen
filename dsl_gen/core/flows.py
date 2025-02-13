@@ -21,7 +21,8 @@ logger = logging.getLogger('dsl_gen')
 # class in dsl_gen/core/rag.py
 
 
-def qa_splitter(state: RAGState, pretty_print: Optional[bool] = None) -> RAGState:
+def qa_splitter(state: RAGState,
+                pretty_print: Optional[bool] = None) -> RAGState:
     """
     QA Splitter node that processes the input state and returns an updated
     state.
@@ -79,7 +80,8 @@ def qa_splitter(state: RAGState, pretty_print: Optional[bool] = None) -> RAGStat
     return state
 
 
-def completion_peeler(state: RAGState, pretty_print: Optional[bool] = None) -> RAGState:
+def completion_peeler(state: RAGState,
+                      pretty_print: Optional[bool] = None) -> RAGState:
     """Answer peeler node
     ### Input fields
         raw_completion (AIMessage): The completion from the coder.
@@ -106,7 +108,8 @@ def completion_peeler(state: RAGState, pretty_print: Optional[bool] = None) -> R
         state.update({"completion": completion_content})
 
     elif state["question_type"] == "coding":
-        # Match code blocks enclosed in triple backticks or ```envision...``` code blocks
+        # Match code blocks enclosed in triple backticks or ```envision...```
+        # code blocks
         code_blocks = re.findall(
             r'```(?:envision)?\s*\n?(.*?)\n?```', completion_content, flags=re.DOTALL)
         if not code_blocks:

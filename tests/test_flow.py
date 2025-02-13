@@ -16,7 +16,7 @@ class TestRAGFlow(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        log_path = Path(__file__).parent/'logs' / \
+        log_path = Path(__file__).parent / 'logs' / \
             f"{time.strftime('%Y%m%d_%H%M%S')}_test_api.log"
         logging.basicConfig(
             level=logging.DEBUG,

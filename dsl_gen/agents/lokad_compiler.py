@@ -73,7 +73,8 @@ def compile_code(state: RAGState) -> RAGState:
 
     if state["question_type"] == "QA":
         logger.debug("Skipping compilation for QA question")
-        return {**state, "compilation": {"valid": True, "errors": [], "raw_data": None, "attempt": 0}}
+        return {**state, "compilation": {"valid": True,
+                                         "errors": [], "raw_data": None, "attempt": 0}}
 
     assert "completion" in state, "completion field is required"
 

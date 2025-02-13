@@ -47,7 +47,8 @@ def _get_embeddings(emb_model: str) -> Embeddings:
     return _embeddings_instance
 
 
-def _load_cached_vectorstore(vecdb_path: str, embeddings: Embeddings) -> Optional[FAISS]:
+def _load_cached_vectorstore(
+        vecdb_path: str, embeddings: Embeddings) -> Optional[FAISS]:
     if osp.exists(vecdb_path):
         try:
             logger.info(f"Loading cached vectorstore from {vecdb_path}")

@@ -84,7 +84,8 @@ def handle_compilation_error(state: RAGState):
 
     # 1. Add the coder's completion (raw output) to the message history
     state["messages"].append(state["raw_completion"])
-    # 2. Prepare the compilation error message and add it to the message history
+    # 2. Prepare the compilation error message and add it to the message
+    # history
     compilation_error_message = "\n".join(
         state["compilation_result"]["messages"])
 

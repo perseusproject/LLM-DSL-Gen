@@ -12,7 +12,8 @@ class ConfigLoader:
     A singleton class responsible for loading and parsing configuration files.
     Methods
     """
-    # Skip if you do not know what a singleton is, this is not important for the project neither.
+    # Skip if you do not know what a singleton is, this is not important for
+    # the project neither.
     _instance = None
 
     def __new__(cls, env_var):
