@@ -63,16 +63,37 @@ def _load_cached_vectorstore(
             return None
     return None
 
+# Tweak 1: MarkdownHeaderTextSplitter splits code blocks by default
+# Replace all code blocks by a placeholder
 
-# Tweak: MarkdownHeaderTextSplitter strips leading whitespace by default
+
+class CodePacker:
+    code_placeholders = {}
+
+    def pack_code(self, text: str) -> str:
+        pattern = re.compile(r'```envision(.*?)```', re.DOTALL)
+        matches = pattern.findall(text)
+        for i, match in enumerate(matches):
+            placeholder = f"{{{{CODE_SNIPPET_{i}}}}}"
+            code_placeholders[placeholder] = match.strip()
+            text = text.replace(f"```envision{match}```", placeholder)
+        return text
+
+    def unpack_code(self, text: str) -> str:
+        for placeholder, code in code_placeholders.items():
+            text = text.replace(placeholder, f"```envision\n{code}\n```")
+        return text
+
+# Tweak 2: MarkdownHeaderTextSplitter strips leading whitespace by default
 # To work around this, we replace leading whitespace with special characters
+
 
 TAB_REPLACEMENT = "輁"
 SPACE_REPLACEMENT = "鶨"
 
 
 def replace_leading_whitespace(text: str) -> str:
-    # Auxiliary functions for _process_file
+    # Auxiliary functions for _preprocess_doc
     """Replace leading whitespace with special characters"""
     lines = []
     for line in text.split('\n'):
@@ -86,24 +107,27 @@ def replace_leading_whitespace(text: str) -> str:
 
 
 def restore_leading_whitespace(text: str) -> str:
-    # Auxiliary functions for _process_file
+    # Auxiliary functions for _preprocess_doc
     """Restore special characters to original whitespace"""
     text = text.replace(TAB_REPLACEMENT, '\t')
     text = text.replace(SPACE_REPLACEMENT, ' ')
     return text
 
 
-def _process_file(file_path: str) -> List[Document]:
+def _preprocess_doc(file_path: str, preprocess_method) -> List[Document]:
 
     headers_to_split_on = [("#", "Header 1"),
                            ("##", "Header 2"),
                            ('###', "Header 3")]
-
     markdown_separators = ["\n#{1,3} ", "\n\\*\\*\\*+\n", "\n\n"]
-
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             raw_content = f.read()
+
+        # Phase 0: pack code
+        if preprocess_method == "pack":
+            packer = CodePacker()
+            raw_content = packer.pack_code(raw_content)
 
         # Phase 1: Preprocessing - Replace leading whitespace
         processed_content = replace_leading_whitespace(raw_content)
@@ -129,6 +153,8 @@ def _process_file(file_path: str) -> List[Document]:
             doc.page_content = restore_leading_whitespace(doc.page_content)
             # Carry original file path as metadata
             doc.metadata["source"] = file_path
+            if preprocess_method == "pack":
+                doc.page_content = packer.unpack_code(doc.page_content)
 
         logger.debug(f"Generated {len(splits)} splits from {file_path}")
 
@@ -149,8 +175,8 @@ def get_all_markdown_files(root_dir: str) -> List[str]:
     return file_paths
 
 
-def _build_vectorstore() -> FAISS:
-    """带本地缓存的文档处理流程"""
+def _build_vectorstore(preprocess_method) -> FAISS:
+    """fetch existing if there already exists a vectorstore, otherwise build the it"""
     vecdb_base = CFG.PATH_CFG.VECTOR_DB_DIR
     emb_model = CFG.EMBEDDING_CFG.embedding_model
 
@@ -180,12 +206,12 @@ def _build_vectorstore() -> FAISS:
     try:
         from tqdm import tqdm
         for full_path in tqdm(file_paths, desc="Processing Markdown files"):
-            docs = _process_file(full_path)
+            docs = _preprocess_doc(full_path, preprocess_method)
             all_docs.extend(docs)
     except ImportError:
         logger.warning("tqdm not found, falling back to simple for loop")
         for full_path in file_paths:
-            docs = _process_file(full_path)
+            docs = _preprocess_doc(full_path, preprocess_method)
             all_docs.extend(docs)
 
     logger.info(
@@ -209,13 +235,13 @@ _vectorstore = None
 # All the above functions are auxiliary functions
 
 
-def get_vectorstore() -> FAISS:  # Main entry point
+def get_vectorstore(preprocess_method) -> FAISS:  # Main entry point
     """TL;DR: Get a global vectorstore instance"""
     global _vectorstore
     if _vectorstore is None:
-        _vectorstore = _build_vectorstore()
+        _vectorstore = _build_vectorstore(preprocess_method)
     return _vectorstore
 
 
 __all__ = ["get_vectorstore", "_get_embeddings", "_build_vectorstore",
-           "_load_cached_vectorstore", "_process_file", "_vectorstore", "_embeddings_instance"]
+           "_load_cached_vectorstore", "_preprocess_doc", "_vectorstore", "_embeddings_instance"]

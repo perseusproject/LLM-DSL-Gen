@@ -10,6 +10,7 @@ VECTOR_DB_DIR = "D:/Projects/PSC/LLM-DSL-Gen/vector_db"
 # Embedding
 [EMBEDDING_CFG]
 embedding_model = "hf/sentence-transformers/all-mpnet-base-v2"
+embedding_method = 'pack'
 #embedding_model = openai/text-embedding-3-small
 SEED = 114514
 top_k = 20
