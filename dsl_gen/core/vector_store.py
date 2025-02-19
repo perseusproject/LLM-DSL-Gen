@@ -68,19 +68,20 @@ def _load_cached_vectorstore(
 
 
 class CodePacker:
-    code_placeholders = {}
+    def __init__(self):
+        self.code_placeholders = {}
 
     def pack_code(self, text: str) -> str:
         pattern = re.compile(r'```envision(.*?)```', re.DOTALL)
         matches = pattern.findall(text)
         for i, match in enumerate(matches):
             placeholder = f"{{{{CODE_SNIPPET_{i}}}}}"
-            code_placeholders[placeholder] = match.strip()
+            self.code_placeholders[placeholder] = match.strip()
             text = text.replace(f"```envision{match}```", placeholder)
         return text
 
     def unpack_code(self, text: str) -> str:
-        for placeholder, code in code_placeholders.items():
+        for placeholder, code in self.code_placeholders.items():
             text = text.replace(placeholder, f"```envision\n{code}\n```")
         return text
 
