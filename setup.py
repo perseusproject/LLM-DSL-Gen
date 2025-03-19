@@ -9,6 +9,7 @@ install_requires = [
     'langchain-huggingface>=0.1.2',
     'langchain-ollama>=0.2.3',
     'langchain-openai>=0.3.3',
+    'langchain-mistralai',
     'langchain-text-splitters>=0.3.5',
     'langdetect>=1.0.9',
     'langgraph>=0.2.68',
